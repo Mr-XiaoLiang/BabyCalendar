@@ -1,0 +1,58 @@
+<resources>
+    <string name="app_name">Baby Calendar</string>
+
+    <string name="title_prenatal_checkup_times_1">第 1 次产检</string>
+    <string name="summary_prenatal_checkup_times_1">6 ~ 13周，B超确认宫内孕、NT胎儿颈部透明带扫查</string>
+    <string name="title_prenatal_checkup_times_2">第 2 次产检</string>
+    <string name="summary_prenatal_checkup_times_2">14 ~ 19周，早期/中期唐氏筛查、无创DNA</string>
+    <string name="title_prenatal_checkup_times_3">第 3 次产检</string>
+    <string name="summary_prenatal_checkup_times_3">20 ~ 24周，系统胎儿畸形筛查（大排畸B超）</string>
+    <string name="title_prenatal_checkup_times_4">第 4 次产检</string>
+    <string name="summary_prenatal_checkup_times_4">糖耐量试验（OGTT筛查妊娠期糖尿病）</string>
+    <string name="title_prenatal_checkup_times_5">第 5 次产检</string>
+    <string name="summary_prenatal_checkup_times_5">小排畸B超、评估胎儿生长发育</string>
+    <string name="title_prenatal_checkup_times_6">第 6 次产检</string>
+    <string name="summary_prenatal_checkup_times_6">常规产检、胎监、胎位检查</string>
+    <string name="title_prenatal_checkup_times_7">第 7 次产检</string>
+    <string name="summary_prenatal_checkup_times_7">胎心监护（NST）、评估分娩方式</string>
+
+    <string name="title_prenatal_checkup_times_8">预产期前三周</string>
+    <string name="summary_prenatal_checkup_times_8">胎心监护（NST）、常规检查</string>
+    <string name="title_prenatal_checkup_times_9">预产期前两周</string>
+    <string name="summary_prenatal_checkup_times_9">胎心监护（NST）、常规检查</string>
+    <string name="title_prenatal_checkup_times_10">预产期前一周</string>
+    <string name="summary_prenatal_checkup_times_10">胎心监护（NST）、常规检查</string>
+    <string name="title_prenatal_childbirth">预产期</string>
+    <string name="summary_prenatal_childbirth">预计分娩时间</string>
+
+    <string name="title_first_heartbeat">第一次心跳</string>
+    <string name="summary_first_heartbeat">宝宝第一次心跳</string>
+
+    <string name="title_first_trimester">孕早期结束</string>
+    <string name="summary_first_trimester">宝宝进入胎儿期</string>
+
+    <string name="title_first_heard">第一次听见</string>
+    <string name="summary_first_heard">宝宝第一次听见声音</string>
+
+    <string name="title_first_fetal_movement">第一次胎动</string>
+    <string name="summary_first_fetal_movement">宝宝第一次踢肚子</string>
+
+    <string name="title_awaiting_childbirth">入院待产</string>
+    <string name="summary_awaiting_childbirth">该收拾入院待产包了</string>
+
+    <string name="title_full_term">足月</string>
+    <string name="summary_full_term">宝宝足月啦</string>
+
+    <string name="title_select_prenatal_start">孕开始时间</string>
+    <string name="summary_select_prenatal_start">需要注意，你需要选择最后一次生理期的开始时间</string>
+
+    <string name="btn_select_prenatal_start">确认时间</string>
+
+    <string name="label_header">%1$d周%2$d天(%3$d天)</string>
+
+    <string name="label_countdown_days">%1$d天后</string>
+    <string name="label_expired_days">%1$d天前</string>
+
+    <string name="label_days">%1$d天</string>
+
+</resources>
