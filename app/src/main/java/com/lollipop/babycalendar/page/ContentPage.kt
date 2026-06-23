@@ -15,12 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CheckCircleOutline
-import androidx.compose.material.icons.rounded.Event
-import androidx.compose.material.icons.rounded.EventBusy
-import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.automirrored.rounded.Undo
+import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,15 +27,18 @@ import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,7 +47,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lollipop.babycalendar.R
 import com.lollipop.babycalendar.data.CalendarHelper
+import com.lollipop.babycalendar.data.CalendarItem
+import com.lollipop.babycalendar.data.CalendarItemState
 import com.lollipop.babycalendar.data.CalendarState
+import kotlinx.coroutines.launch
 
 @Composable
 fun ContentPage(insets: PaddingValues) {
@@ -152,87 +157,130 @@ fun ContentPage(insets: PaddingValues) {
 }
 
 @Composable
-private fun ItemCard(item: CalendarState.Item) {
-    val flagIcon: ImageVector
-    val cardColor: Color
-    when (item.state) {
-        CalendarState.ItemState.InProgress -> {
-            flagIcon = Icons.Rounded.FastForward
-            cardColor = MaterialTheme.colorScheme.primaryContainer
-        }
+private fun LazyItemScope.ItemCard(item: CalendarItem) {
+    // 使用 SwipeToDismissBox 实现侧滑菜单
+    val dismissState = rememberSwipeToDismissBoxState()
 
-        CalendarState.ItemState.NotStarted -> {
-            flagIcon = Icons.Rounded.Event
-            cardColor = MaterialTheme.colorScheme.surfaceContainer
-        }
+    // 2. 监听滑动到终点的事件触发
+    // 当状态变为 Settled 以外的值（即滑到两端松手了），触发业务逻辑
+    LaunchedEffect(dismissState.currentValue) {
+        when (dismissState.currentValue) {
+            SwipeToDismissBoxValue.StartToEnd -> {
+                // 标记完成
+                CalendarHelper.onItemStateChange(item.key, true)
+            }
 
-        CalendarState.ItemState.Expired -> {
-            flagIcon = Icons.Rounded.EventBusy
-            cardColor = MaterialTheme.colorScheme.errorContainer
-        }
+            SwipeToDismissBoxValue.EndToStart -> {
+                // 撤回完成
+                CalendarHelper.onItemStateChange(item.key, false)
+            }
 
-        CalendarState.ItemState.Completed -> {
-            flagIcon = Icons.Rounded.CheckCircleOutline
-            cardColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5F)
+            SwipeToDismissBoxValue.Settled -> { /* 未滑动或回弹 */
+            }
         }
     }
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(cardColor)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Icon(
-                imageVector = flagIcon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+
+    val coroutineScope = rememberCoroutineScope()
+
+    val swipeIcon = if (item.state == CalendarItemState.Completed) {
+        Icons.AutoMirrored.Rounded.Undo
+    } else {
+        Icons.Rounded.Done
+    }
+
+    SwipeToDismissBox(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateItem(),
+        state = dismissState,
+        enableDismissFromStartToEnd = item.canSwipeStartToEnd,
+        enableDismissFromEndToStart = item.canSwipeEndToStart,
+        backgroundContent = {
+            val direction = dismissState.dismissDirection
+            // 侧滑展示的按钮
+            Row(
                 modifier = Modifier
-                    .size(68.dp)
-                    .alpha(0.16F)
-                    .align(Alignment.BottomEnd)
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = 16.dp,
-                        vertical = 8.dp
-                    ),
-            ) {
-                val countDownText = if (item.countdown > 0) {
-                    stringResource(R.string.label_countdown_days, item.countdown)
-                } else if (item.countdown < 0) {
-                    stringResource(R.string.label_expired_days, -item.countdown)
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalArrangement = if (direction == SwipeToDismissBoxValue.StartToEnd) {
+                    Arrangement.Start
                 } else {
-                    ""
+                    Arrangement.End
+                },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = {
+                    coroutineScope.launch { dismissState.reset() }
+                }) {
+                    Icon(
+                        modifier = Modifier.size(36.dp),
+                        imageVector = swipeIcon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                if (countDownText.isNotEmpty()) {
+            }
+        }
+    ) {
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.large,
+            colors = CardDefaults.cardColors(item.cardColor())
+        ) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(
+                    imageVector = item.flagIcon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(68.dp)
+                        .alpha(0.16F)
+                        .align(Alignment.BottomEnd)
+                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = 16.dp,
+                            vertical = 8.dp
+                        ),
+                ) {
+                    val countDownText = if (item.countdown > 0) {
+                        stringResource(R.string.label_countdown_days, item.countdown)
+                    } else if (item.countdown < 0) {
+                        stringResource(R.string.label_expired_days, -item.countdown)
+                    } else {
+                        ""
+                    }
+                    if (countDownText.isNotEmpty()) {
+                        Text(
+                            text = countDownText,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.align(Alignment.End)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
                     Text(
-                        text = countDownText,
-                        fontSize = 12.sp,
+                        text = stringResource(item.labelId),
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.align(Alignment.End)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(item.summaryId),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-                Text(
-                    text = stringResource(item.labelId),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = stringResource(item.summaryId),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.fillMaxWidth()
-                )
             }
         }
     }

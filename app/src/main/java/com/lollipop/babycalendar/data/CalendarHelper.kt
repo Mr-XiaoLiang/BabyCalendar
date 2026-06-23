@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.icu.text.SimpleDateFormat
 import androidx.core.content.edit
-import com.lollipop.babycalendar.R
 import java.util.Date
 import java.util.Locale
 
@@ -36,6 +35,7 @@ object CalendarHelper {
         prefInstance?.edit {
             putBoolean(key, isCompleted)
         }
+        calculate()
     }
 
     private fun setStartTime(time: Long) {
@@ -65,22 +65,22 @@ object CalendarHelper {
         CalendarState.pregnancyModDay.intValue = modDays
         CalendarState.prenatalCountdownDay.intValue = (280 - diffDays)
 
-        val itemList = mutableListOf<CalendarState.Item>()
+        val itemList = mutableListOf<CalendarItem>()
         CalendarFlag.itemList.sortedBy { it.startDays }.forEach { flag ->
             val state = if (flag.startDays > diffDays) {
                 // 如果开始时间比现在还大，那说明还没开始
-                CalendarState.ItemState.NotStarted
+                CalendarItemState.NotStarted
             } else {
                 // 否则的情况下，
                 if (isItemCompleted(flag)) {
                     // 我们看看是否完成了
-                    CalendarState.ItemState.Completed
+                    CalendarItemState.Completed
                 } else if (flag.endDays < diffDays) {
                     // 如果结束时间比现在小，那说明已经过期了
-                    CalendarState.ItemState.Expired
+                    CalendarItemState.Expired
                 } else {
                     // 否则，表示可以进行
-                    CalendarState.ItemState.InProgress
+                    CalendarItemState.InProgress
                 }
             }
             val countdown = if (flag.startDays - diffDays > 0) {
@@ -91,7 +91,7 @@ object CalendarHelper {
                 (flag.endDays - diffDays).toInt()
             }
             itemList.add(
-                CalendarState.Item(
+                CalendarItem(
                     key = flag.key,
                     labelId = flag.labelId,
                     summaryId = flag.summaryId,
@@ -105,57 +105,6 @@ object CalendarHelper {
 
         val sortedList = itemList.sortedBy { it.state.ordinal }
         CalendarState.itemList.clear()
-
-
-        CalendarState.itemList.add(
-            CalendarState.Item(
-                key = "test1",
-                labelId = R.string.label_header,
-                summaryId = R.string.label_header,
-                timeBegin = 0,
-                timeEnd = 1,
-                state = CalendarState.ItemState.Expired,
-                countdown = -12
-            )
-        )
-
-        CalendarState.itemList.add(
-            CalendarState.Item(
-                key = "test2",
-                labelId = R.string.label_header,
-                summaryId = R.string.label_header,
-                timeBegin = 0,
-                timeEnd = 1,
-                state = CalendarState.ItemState.NotStarted,
-                countdown = 12
-            )
-        )
-
-        CalendarState.itemList.add(
-            CalendarState.Item(
-                key = "test3",
-                labelId = R.string.label_header,
-                summaryId = R.string.label_header,
-                timeBegin = 0,
-                timeEnd = 1,
-                state = CalendarState.ItemState.Completed,
-                countdown = 12
-            )
-        )
-
-        CalendarState.itemList.add(
-            CalendarState.Item(
-                key = "test4",
-                labelId = R.string.label_header,
-                summaryId = R.string.label_header,
-                timeBegin = 0,
-                timeEnd = 1,
-                state = CalendarState.ItemState.InProgress,
-                countdown = 0
-            )
-        )
-
-
         CalendarState.itemList.addAll(sortedList)
     }
 

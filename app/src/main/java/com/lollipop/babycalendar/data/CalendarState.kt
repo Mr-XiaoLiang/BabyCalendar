@@ -9,7 +9,7 @@ object CalendarState {
     /**
      * 所有事件列表
      */
-    val itemList = SnapshotStateList<Item>()
+    val itemList = SnapshotStateList<CalendarItem>()
 
     /**
      * 怀孕开始时间
@@ -35,22 +35,5 @@ object CalendarState {
      * 生产倒计时
      */
     val prenatalCountdownDay = mutableIntStateOf(0)
-
-    class Item(
-        val key: String,
-        val labelId: Int,
-        val summaryId: Int,
-        val timeBegin: Long,
-        val timeEnd: Long,
-        val state: ItemState,
-        val countdown: Int
-    )
-
-    enum class ItemState {
-        InProgress,
-        NotStarted,
-        Expired,
-        Completed,
-    }
 
 }
