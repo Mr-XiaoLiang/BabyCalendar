@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Baby Calendar</string>
+    <string name="app_name">宝贝日历</string>
 
     <string name="title_prenatal_checkup_times_1">第 1 次产检</string>
     <string name="summary_prenatal_checkup_times_1">6 ~ 13周，B超确认宫内孕、NT胎儿颈部透明带扫查</string>
