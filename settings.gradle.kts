@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Baby Calendar"
+rootProject.name = "BabyCalendar"
 include(":app")
