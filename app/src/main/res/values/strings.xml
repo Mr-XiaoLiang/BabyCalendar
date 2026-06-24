@@ -52,6 +52,7 @@
 
     <string name="label_countdown_days">%1$d天后</string>
     <string name="label_expired_days">%1$d天前</string>
+    <string name="label_countdown_days_now">现在</string>
 
     <string name="label_days">%1$d天</string>
 

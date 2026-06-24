@@ -17,7 +17,8 @@ object CalendarHelper {
 
     private var prefInstance: SharedPreferences? = null
 
-    private var dateFormat: SimpleDateFormat? = null
+    private var fullDateFormat: SimpleDateFormat? = null
+    private var shortDateFormat: SimpleDateFormat? = null
 
     fun init(context: Context) {
         val preferences = getPreferences(context)
@@ -54,7 +55,7 @@ object CalendarHelper {
             return
         }
 
-        CalendarState.pregnancyStart.value = getDateFormat().format(Date(time))
+        CalendarState.pregnancyStart.value = getFullDateFormat().format(Date(time))
         val nowDayNumber = System.currentTimeMillis() / ONE_DAY
         val startDayNumber = time / ONE_DAY
         val diffDays = (nowDayNumber - startDayNumber + 1).toInt()
@@ -66,39 +67,16 @@ object CalendarHelper {
         CalendarState.prenatalCountdownDay.intValue = (280 - diffDays)
 
         val itemList = mutableListOf<CalendarItem>()
+        val shortFormat = getShortDateFormat()
         CalendarFlag.itemList.sortedBy { it.startDays }.forEach { flag ->
-            val state = if (flag.startDays > diffDays) {
-                // 如果开始时间比现在还大，那说明还没开始
-                CalendarItemState.NotStarted
-            } else {
-                // 否则的情况下，
-                if (isItemCompleted(flag)) {
-                    // 我们看看是否完成了
-                    CalendarItemState.Completed
-                } else if (flag.endDays < diffDays) {
-                    // 如果结束时间比现在小，那说明已经过期了
-                    CalendarItemState.Expired
-                } else {
-                    // 否则，表示可以进行
-                    CalendarItemState.InProgress
-                }
-            }
-            val countdown = if (flag.startDays - diffDays > 0) {
-                (flag.startDays - diffDays).toInt()
-            } else if (flag.endDays - diffDays > 0) {
-                0
-            } else {
-                (flag.endDays - diffDays).toInt()
-            }
             itemList.add(
                 CalendarItem(
                     key = flag.key,
                     labelId = flag.labelId,
                     summaryId = flag.summaryId,
-                    timeBegin = flag.startDays * ONE_DAY,
-                    timeEnd = flag.endDays * ONE_DAY,
-                    state = state,
-                    countdown = countdown
+                    dateRange = getDateRange(flag, startDayNumber, shortFormat),
+                    state = getState(flag, diffDays),
+                    countdown = getCountdown(flag, diffDays)
                 )
             )
         }
@@ -108,12 +86,58 @@ object CalendarHelper {
         CalendarState.itemList.addAll(sortedList)
     }
 
+    private fun getState(flag: CalendarFlag.Item, diffDays: Int): CalendarItemState {
+        if (flag.startDays > diffDays) {
+            // 如果开始时间比现在还大，那说明还没开始
+            return CalendarItemState.NotStarted
+        }
+        // 否则的情况下，
+        if (isItemCompleted(flag)) {
+            // 我们看看是否完成了
+            return CalendarItemState.Completed
+        }
+        if (flag.endDays < diffDays) {
+            // 如果结束时间比现在小，那说明已经过期了
+            return CalendarItemState.Expired
+        }
+        // 否则，表示可以进行
+        return CalendarItemState.InProgress
+    }
+
+    private fun getCountdown(flag: CalendarFlag.Item, diffDays: Int): Int {
+        return if (flag.startDays - diffDays > 0) {
+            (flag.startDays - diffDays).toInt()
+        } else if (flag.endDays - diffDays > 0) {
+            0
+        } else {
+            (flag.endDays - diffDays).toInt()
+        }
+    }
+
+    private fun getDateRange(
+        flag: CalendarFlag.Item,
+        startDayNumber: Long,
+        format: SimpleDateFormat
+    ): String {
+        val startTime = Date(flag.startDayNumber(startDayNumber) * ONE_DAY)
+        val endTime = Date(flag.endDayNumber(startDayNumber) * ONE_DAY)
+        return "${format.format(startTime)} - ${format.format(endTime)}"
+    }
+
     private fun isItemCompleted(flag: CalendarFlag.Item): Boolean {
         return prefInstance?.getBoolean(flag.key, false) ?: false
     }
 
-    private fun getDateFormat(): SimpleDateFormat {
-        return dateFormat ?: SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    private fun getFullDateFormat(): SimpleDateFormat {
+        return fullDateFormat ?: SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).also {
+            fullDateFormat = it
+        }
+    }
+
+    private fun getShortDateFormat(): SimpleDateFormat {
+        return shortDateFormat ?: SimpleDateFormat("MM/dd", Locale.getDefault()).also {
+            shortDateFormat = it
+        }
     }
 
     private fun getPreferences(context: Context): SharedPreferences {

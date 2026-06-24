@@ -14,8 +14,7 @@ class CalendarItem(
     val key: String,
     val labelId: Int,
     val summaryId: Int,
-    val timeBegin: Long,
-    val timeEnd: Long,
+    val dateRange: String,
     val state: CalendarItemState,
     val countdown: Int
 ) {

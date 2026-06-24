@@ -31,12 +31,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -62,6 +65,7 @@ fun ContentPage(insets: PaddingValues) {
     val pregnancyWeek by remember { CalendarState.pregnancyWeek }
     val pregnancyModDay by remember { CalendarState.pregnancyModDay }
     val prenatalCountdownDay by remember { CalendarState.prenatalCountdownDay }
+    var isDisplayDate by remember { mutableStateOf(false) }
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -147,7 +151,9 @@ fun ContentPage(insets: PaddingValues) {
         }
 
         items(itemList, key = { it.key }) { item ->
-            ItemCard(item)
+            ItemCard(item, isDisplayDate) {
+                isDisplayDate = !isDisplayDate
+            }
         }
 
         item {
@@ -158,7 +164,11 @@ fun ContentPage(insets: PaddingValues) {
 }
 
 @Composable
-private fun LazyItemScope.ItemCard(item: CalendarItem) {
+private fun LazyItemScope.ItemCard(
+    item: CalendarItem,
+    isDisplayDate: Boolean,
+    onDateClick: () -> Unit
+) {
     // 使用 SwipeToDismissBox 实现侧滑菜单
     val dismissState = rememberSwipeToDismissBoxState()
 
@@ -242,19 +252,18 @@ private fun LazyItemScope.ItemCard(item: CalendarItem) {
                         .align(Alignment.BottomEnd)
                 )
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            horizontal = 16.dp,
-                            vertical = 8.dp
-                        ),
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    val countDownText = if (item.countdown > 0) {
-                        stringResource(R.string.label_countdown_days, item.countdown)
-                    } else if (item.countdown < 0) {
-                        stringResource(R.string.label_expired_days, -item.countdown)
+                    val countDownText = if (isDisplayDate) {
+                        item.dateRange
                     } else {
-                        ""
+                        if (item.countdown > 0) {
+                            stringResource(R.string.label_countdown_days, item.countdown)
+                        } else if (item.countdown < 0) {
+                            stringResource(R.string.label_expired_days, -item.countdown)
+                        } else {
+                            stringResource(R.string.label_countdown_days_now)
+                        }
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -265,26 +274,34 @@ private fun LazyItemScope.ItemCard(item: CalendarItem) {
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.weight(1F)
+                            modifier = Modifier
+                                .weight(1F)
+                                .padding(vertical = 12.dp, horizontal = 16.dp)
                         )
                         if (countDownText.isNotEmpty()) {
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = countDownText,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
+                            TextButton(
+                                onClick = onDateClick,
+                            ) {
+                                Text(
+                                    text = countDownText,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
                         }
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = stringResource(item.summaryId),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }

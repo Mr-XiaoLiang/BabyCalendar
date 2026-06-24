@@ -148,6 +148,14 @@ object CalendarFlag {
             }
         }
 
+        fun startDayNumber(startDayNumber: Long): Long {
+            return startDays + startDayNumber
+        }
+
+        fun endDayNumber(startDayNumber: Long): Long {
+            return endDays + startDayNumber
+        }
+
     }
 
 }
