@@ -57,7 +57,7 @@ object CalendarHelper {
         CalendarState.pregnancyStart.value = getDateFormat().format(Date(time))
         val nowDayNumber = System.currentTimeMillis() / ONE_DAY
         val startDayNumber = time / ONE_DAY
-        val diffDays = (nowDayNumber - startDayNumber).toInt()
+        val diffDays = (nowDayNumber - startDayNumber + 1).toInt()
         val weeks = diffDays / 7
         val modDays = diffDays % 7
         CalendarState.pregnancyDay.intValue = diffDays
