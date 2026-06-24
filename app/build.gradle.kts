@@ -18,8 +18,8 @@ android {
         applicationId = "com.lollipop.babycalendar"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1_00_00
-        versionName = "1.0.0"
+        versionCode = 1_00_01
+        versionName = "1.0.1"
     }
 
     buildTypes {
